@@ -3,14 +3,18 @@ Dynamic and static D bindings for [bgfx](https://github.com/bkaradzic/bgfx).
 
 These bindings targets bgfx API version **100** (commit [010676412ef819ed7a2a6eece1f02f88e9666016](https://github.com/bkaradzic/bgfx/tree/010676412ef819ed7a2a6eece1f02f88e9666016)).
 
-## Usage (dub)
-```dub add bindbc-bgfx```
+## Usage (DUB)
+To install this library with DUB, simply run the following commands:
+```
+dub add bindbc-bgfx
+dub add bindbc-loader
+```
 
 The library is configured to `dynamic` configuration by default, and should work out of box if you have the dynamic library installed properly.
 
 For static linking, `static` configuration must be enabled:
 
-__dub.json__:
+__dub.json__
 ```
 "subConfigurations": {
 	"bindbc-bgfx": "static"
@@ -24,6 +28,7 @@ __dub.json__:
 The bindings also support `-betterC`, which can be enabled with `staticBC` and `dynamicBC` configurations.
 
 ## Sample
+
 ```d
 import bindbc.bgfx;
 
