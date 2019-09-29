@@ -1,0 +1,41 @@
+{
+	"name": "bindbc-bgfx",
+	"description": "Dynamic and static D bindings for bgfx.",
+	"homepage": "https://github.com/GoaLitiuM/bindbc-bgfx",
+	"authors": [ "Ari Vuollet" ],
+	"license": "BSL-1.0",
+
+	"targetType": "staticLibrary",
+	"targetPath": "lib",
+	"targetName": "BindBC_bgfx",
+
+	"configurations": [
+		{
+			"name": "dynamic",
+			"dependencies": {
+				 "bindbc-loader": "~>0.2.1"
+			}
+		},
+		{
+			"name": "dynamicBC",
+			"dependencies": {
+				"bindbc-loader": "~>0.2.1"
+			},
+			"subConfigurations": {
+				"bindbc-loader": "yesBC"
+			},
+			"dflags": [ "-betterC" ]
+		},
+		{
+			"name": "static",
+			"versions": [ "BindBgfx_Static" ],
+			"excludedSourceFiles": [ "source/bindbc/bgfx/dynload.d" ]
+		},
+		{
+			"name": "staticBC",
+			"dflags": [ "-betterC" ],
+			"versions": [ "BindBgfx_Static" ],
+			"excludedSourceFiles": [ "source/bindbc/bgfx/dynload.d" ]
+		}
+	]
+}
