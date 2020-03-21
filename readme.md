@@ -44,3 +44,7 @@ bgfx_shutdown();
 
 unloadBgfx(); // optional, only with dynamically linked bgfx
 ```
+
+## Generating bindings
+
+The bindings can be regenerated manually by running `genie idl` in bgfx project folder, and copying the generated files from `bgfx/bindings/d/` over the files in `bindbc-bgfx/source/bindbc/bgfx`.
