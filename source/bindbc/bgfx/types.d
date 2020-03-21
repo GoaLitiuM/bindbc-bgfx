@@ -10,7 +10,7 @@ public import core.stdc.stdarg : va_list;
 
 extern(C) @nogc nothrow:
 
-enum uint BGFX_API_VERSION = 100;
+enum uint BGFX_API_VERSION = 104;
 
 alias bgfx_view_id_t = ushort;
 
@@ -100,6 +100,7 @@ enum ulong BGFX_STATE_MSAA = 0x0100000000000000; /// Enable MSAA rasterization.
 enum ulong BGFX_STATE_LINEAA = 0x0200000000000000; /// Enable line AA rasterization.
 enum ulong BGFX_STATE_CONSERVATIVE_RASTER = 0x0400000000000000; /// Enable conservative rasterization.
 enum ulong BGFX_STATE_NONE = 0x0000000000000000; /// No state.
+enum ulong BGFX_STATE_FRONT_CCW = 0x0000008000000000; /// Front counter-clockwise (default is clockwise).
 enum ulong BGFX_STATE_BLEND_INDEPENDENT = 0x0000000400000000; /// Enable blend independent.
 enum ulong BGFX_STATE_BLEND_ALPHA_TO_COVERAGE = 0x0000000800000000; /// Enable alpha to coverage.
 /**
@@ -187,6 +188,18 @@ enum ushort BGFX_CLEAR_DISCARD_DEPTH = 0x0800; /// Discard frame buffer depth at
 enum ushort BGFX_CLEAR_DISCARD_STENCIL = 0x1000; /// Discard frame buffer stencil attachment.
 enum ushort BGFX_CLEAR_DISCARD_COLOR_MASK = 0x07f8;
 enum ushort BGFX_CLEAR_DISCARD_MASK = 0x1ff8;
+
+/**
+ * Rendering state discard. When state is preserved in submit, rendering states can be discarded
+ * on a finer grain.
+ */
+enum ubyte BGFX_DISCARD_NONE = 0x00; /// Discard nothing
+enum ubyte BGFX_DISCARD_INDEX_BUFFER = 0x01; /// Discard only Index Buffer
+enum ubyte BGFX_DISCARD_VERTEX_STREAMS = 0x02; /// Discard only Vertex Streams
+enum ubyte BGFX_DISCARD_TEXTURE_SAMPLERS = 0x04; /// Discard only texture samplers
+enum ubyte BGFX_DISCARD_COMPUTE = 0x08; /// Discard only Compute shader related state
+enum ubyte BGFX_DISCARD_STATE = 0x10; /// Discard only state
+enum ubyte BGFX_DISCARD_ALL = 0x1f; /// Discard every rendering states
 
 enum uint BGFX_DEBUG_NONE = 0x00000000; /// No debug.
 enum uint BGFX_DEBUG_WIREFRAME = 0x00000001; /// Enable wireframe for all primitives.
@@ -923,8 +936,10 @@ struct bgfx_view_stats_t
 {
 	char[256] name; /// View name.
 	bgfx_view_id_t view; /// View id.
-	long cpuTimeElapsed; /// CPU (submit) time elapsed.
-	long gpuTimeElapsed; /// GPU time elapsed.
+	long cpuTimeBegin; /// CPU (submit) begin time.
+	long cpuTimeEnd; /// CPU (submit) end time.
+	long gpuTimeBegin; /// GPU begin time.
+	long gpuTimeEnd; /// GPU end time.
 }
 
 /// Encoder stats.

@@ -1,7 +1,7 @@
 # bindbc-bgfx
 Dynamic and static D bindings for [bgfx](https://github.com/bkaradzic/bgfx).
 
-These bindings targets bgfx API version **100** (commit [010676412ef819ed7a2a6eece1f02f88e9666016](https://github.com/bkaradzic/bgfx/tree/010676412ef819ed7a2a6eece1f02f88e9666016)).
+These bindings target bgfx API version **104** (commit [387ac7fc25e4322bac3ac16f4fb0aa3e3bdbbeb2](https://github.com/bkaradzic/bgfx/tree/387ac7fc25e4322bac3ac16f4fb0aa3e3bdbbeb2)).
 
 ## Usage (DUB)
 To install this library with DUB, simply run the following commands:
