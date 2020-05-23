@@ -10,7 +10,7 @@ public import core.stdc.stdarg : va_list;
 
 extern(C) @nogc nothrow:
 
-enum uint BGFX_API_VERSION = 104;
+enum uint BGFX_API_VERSION = 106;
 
 alias bgfx_view_id_t = ushort;
 
@@ -193,13 +193,14 @@ enum ushort BGFX_CLEAR_DISCARD_MASK = 0x1ff8;
  * Rendering state discard. When state is preserved in submit, rendering states can be discarded
  * on a finer grain.
  */
-enum ubyte BGFX_DISCARD_NONE = 0x00; /// Discard nothing
-enum ubyte BGFX_DISCARD_INDEX_BUFFER = 0x01; /// Discard only Index Buffer
-enum ubyte BGFX_DISCARD_VERTEX_STREAMS = 0x02; /// Discard only Vertex Streams
-enum ubyte BGFX_DISCARD_TEXTURE_SAMPLERS = 0x04; /// Discard only texture samplers
-enum ubyte BGFX_DISCARD_COMPUTE = 0x08; /// Discard only Compute shader related state
-enum ubyte BGFX_DISCARD_STATE = 0x10; /// Discard only state
-enum ubyte BGFX_DISCARD_ALL = 0x1f; /// Discard every rendering states
+enum ubyte BGFX_DISCARD_NONE = 0x00; /// Preserve everything.
+enum ubyte BGFX_DISCARD_BINDINGS = 0x01; /// Discard texture sampler and buffer bindings.
+enum ubyte BGFX_DISCARD_INDEX_BUFFER = 0x02; /// Discard index buffer.
+enum ubyte BGFX_DISCARD_INSTANCE_DATA = 0x04; /// Discard instance data.
+enum ubyte BGFX_DISCARD_STATE = 0x08; /// Discard state.
+enum ubyte BGFX_DISCARD_TRANSFORM = 0x10; /// Discard transform.
+enum ubyte BGFX_DISCARD_VERTEX_STREAMS = 0x20; /// Discard vertex streams.
+enum ubyte BGFX_DISCARD_ALL = 0xff; /// Discard all states.
 
 enum uint BGFX_DEBUG_NONE = 0x00000000; /// No debug.
 enum uint BGFX_DEBUG_WIREFRAME = 0x00000001; /// Enable wireframe for all primitives.
@@ -434,6 +435,7 @@ enum bgfx_renderer_type_t
 	BGFX_RENDERER_TYPE_OPENGLES, /// OpenGL ES 2.0+
 	BGFX_RENDERER_TYPE_OPENGL, /// OpenGL 2.1+
 	BGFX_RENDERER_TYPE_VULKAN, /// Vulkan
+	BGFX_RENDERER_TYPE_WEBGPU, /// WebGPU
 
 	BGFX_RENDERER_TYPE_COUNT
 }
@@ -697,7 +699,7 @@ struct bgfx_caps_gpu_t
 	ushort deviceId; /// Device id.
 }
 
-/// Renderer capabilities limits.
+/// Renderer runtime limits.
 struct bgfx_caps_limits_t
 {
 	uint maxDrawCalls; /// Maximum number of draw calls.
@@ -741,7 +743,7 @@ struct bgfx_caps_t
 	bool originBottomLeft; /// True when NDC origin is at bottom left.
 	byte numGPUs; /// Number of enumerated GPUs.
 	bgfx_caps_gpu_t[4] gpu; /// Enumerated GPUs.
-	bgfx_caps_limits_t limits;
+	bgfx_caps_limits_t limits; /// Renderer runtime limits.
 
 	/**
 	 * Supported texture format capabilities flags:
@@ -779,11 +781,26 @@ struct bgfx_internal_data_t
 /// Platform data.
 struct bgfx_platform_data_t
 {
-	void* ndt; /// Native display type.
-	void* nwh; /// Native window handle.
-	void* context; /// GL context, or D3D device.
-	void* backBuffer; /// GL backbuffer, or D3D render target view.
-	void* backBufferDS; /// Backbuffer depth/stencil.
+	void* ndt; /// Native display type (*nix specific).
+
+	/**
+	 * Native window handle. If `NULL` bgfx will create headless
+	 * context/device if renderer API supports it.
+	 */
+	void* nwh;
+	void* context; /// GL context, or D3D device. If `NULL`, bgfx will create context/device.
+
+	/**
+	 * GL back-buffer, or D3D render target view. If `NULL` bgfx will
+	 * create back-buffer color surface.
+	 */
+	void* backBuffer;
+
+	/**
+	 * Backbuffer depth/stencil. If `NULL` bgfx will create back-buffer
+	 * depth/stencil surface.
+	 */
+	void* backBufferDS;
 }
 
 /// Backbuffer resolution and reset parameters.
@@ -797,6 +814,7 @@ struct bgfx_resolution_t
 	byte maxFrameLatency; /// Maximum frame latency.
 }
 
+/// Configurable runtime limits parameters.
 struct bgfx_init_limits_t
 {
 	ushort maxEncoders; /// Maximum number of encoder threads.
@@ -835,7 +853,7 @@ struct bgfx_init_t
 	bool profile; /// Enable device for profiling.
 	bgfx_platform_data_t platformData; /// Platform data.
 	bgfx_resolution_t resolution; /// Backbuffer resolution and reset parameters. See: `bgfx::Resolution`.
-	bgfx_init_limits_t limits;
+	bgfx_init_limits_t limits; /// Configurable runtime limits parameters.
 
 	/**
 	 * Provide application specific callback interface.
