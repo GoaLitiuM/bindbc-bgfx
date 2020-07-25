@@ -4,10 +4,9 @@ Dynamic and static D bindings for [bgfx](https://github.com/bkaradzic/bgfx).
 These bindings target bgfx API version **108** (commit [ecb0143a40a4888465ad22f128b45bf6505e644b](https://github.com/bkaradzic/bgfx/tree/ecb0143a40a4888465ad22f128b45bf6505e644b)).
 
 ## Usage (DUB)
-To install this library with DUB, simply run the following commands:
+To install this library with DUB, simply run the following command:
 ```
 dub add bindbc-bgfx
-dub add bindbc-loader
 ```
 
 The library is configured to `dynamic` configuration by default, and should work out of box if you have the dynamic library installed properly (e.g. on Windows, the .DLL files are accessible by the application).
