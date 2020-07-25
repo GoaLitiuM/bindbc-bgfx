@@ -38,7 +38,7 @@ Make sure to link against all the necessary system libraries needed by bgfx, and
 
 "libs-linux": [
 	"stdc++", "GL", "X11"
-]
+],
 "lflags-linux": [
 	"-L/example/path/to/bgfx/bgfx/.build/linux64_gcc/bin"
 ]
