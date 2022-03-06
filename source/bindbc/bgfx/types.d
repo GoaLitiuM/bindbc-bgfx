@@ -211,7 +211,7 @@ enum uint BGFX_DEBUG_WIREFRAME = 0x00000001; /// Enable wireframe for all primit
 enum uint BGFX_DEBUG_IFH = 0x00000002;
 enum uint BGFX_DEBUG_STATS = 0x00000004; /// Enable statistics display.
 enum uint BGFX_DEBUG_TEXT = 0x00000008; /// Enable debug text display.
-enum uint BGFX_DEBUG_PROFILER = 0x00000010; /// Enable profiler.
+enum uint BGFX_DEBUG_PROFILER = 0x00000010; /// Enable profiler. This causes per-view statistics to be collected, available through `bgfx::Stats::ViewStats`. This is unrelated to the profiler functions in `bgfx::CallbackI`.
 
 enum ushort BGFX_BUFFER_COMPUTE_FORMAT_8X1 = 0x0001; /// 1 8-bit value
 enum ushort BGFX_BUFFER_COMPUTE_FORMAT_8X2 = 0x0002; /// 2 8-bit values
@@ -401,8 +401,10 @@ enum ubyte BGFX_RESOLVE_AUTO_GEN_MIPS = 0x01; /// Auto-generate mip maps on reso
 enum ushort BGFX_PCI_ID_NONE = 0x0000; /// Autoselect adapter.
 enum ushort BGFX_PCI_ID_SOFTWARE_RASTERIZER = 0x0001; /// Software rasterizer.
 enum ushort BGFX_PCI_ID_AMD = 0x1002; /// AMD adapter.
+enum ushort BGFX_PCI_ID_APPLE = 0x106b; /// Apple adapter.
 enum ushort BGFX_PCI_ID_INTEL = 0x8086; /// Intel adapter.
 enum ushort BGFX_PCI_ID_NVIDIA = 0x10de; /// nVidia adapter.
+enum ushort BGFX_PCI_ID_MICROSOFT = 0x1414; /// Microsoft adapter.
 
 enum ubyte BGFX_CUBE_MAP_POSITIVE_X = 0x00; /// Cubemap +x.
 enum ubyte BGFX_CUBE_MAP_NEGATIVE_X = 0x01; /// Cubemap -x.
@@ -427,6 +429,7 @@ enum bgfx_fatal_t
 enum bgfx_renderer_type_t
 {
 	BGFX_RENDERER_TYPE_NOOP, /// No rendering.
+	BGFX_RENDERER_TYPE_AGC, /// AGC
 	BGFX_RENDERER_TYPE_DIRECT3D9, /// Direct3D 9.0
 	BGFX_RENDERER_TYPE_DIRECT3D11, /// Direct3D 11.0
 	BGFX_RENDERER_TYPE_DIRECT3D12, /// Direct3D 12.0
@@ -743,7 +746,7 @@ struct bgfx_caps_t
 	ushort deviceId; /// Selected GPU device id.
 	bool homogeneousDepth; /// True when NDC depth is in [-1, 1] range, otherwise its [0, 1].
 	bool originBottomLeft; /// True when NDC origin is at bottom left.
-	byte numGPUs; /// Number of enumerated GPUs.
+	ubyte numGPUs; /// Number of enumerated GPUs.
 	bgfx_caps_gpu_t[4] gpu; /// Enumerated GPUs.
 	bgfx_caps_limits_t limits; /// Renderer runtime limits.
 
@@ -814,8 +817,8 @@ struct bgfx_resolution_t
 	uint width; /// Backbuffer width.
 	uint height; /// Backbuffer height.
 	uint reset; /// Reset parameters.
-	byte numBackBuffers; /// Number of back buffers.
-	byte maxFrameLatency; /// Maximum frame latency.
+	ubyte numBackBuffers; /// Number of back buffers.
+	ubyte maxFrameLatency; /// Maximum frame latency.
 }
 
 /// Configurable runtime limits parameters.
@@ -855,7 +858,7 @@ struct bgfx_init_t
 	 */
 	ushort deviceId;
 	ulong capabilities; /// Capabilities initialization mask (default: UINT64_MAX).
-	bool debug_; /// Enable device for debuging.
+	bool debug_; /// Enable device for debugging.
 	bool profile; /// Enable device for profiling.
 	bgfx_platform_data_t platformData; /// Platform data.
 	bgfx_resolution_t resolution; /// Backbuffer resolution and reset parameters. See: `bgfx::Resolution`.
@@ -881,14 +884,14 @@ struct bgfx_init_t
  */
 struct bgfx_memory_t
 {
-	byte* data; /// Pointer to data.
+	ubyte* data; /// Pointer to data.
 	uint size; /// Data size.
 }
 
 /// Transient index buffer.
 struct bgfx_transient_index_buffer_t
 {
-	byte* data; /// Pointer to data.
+	ubyte* data; /// Pointer to data.
 	uint size; /// Data size.
 	uint startIndex; /// First index.
 	bgfx_index_buffer_handle_t handle; /// Index buffer handle.
@@ -898,7 +901,7 @@ struct bgfx_transient_index_buffer_t
 /// Transient vertex buffer.
 struct bgfx_transient_vertex_buffer_t
 {
-	byte* data; /// Pointer to data.
+	ubyte* data; /// Pointer to data.
 	uint size; /// Data size.
 	uint startVertex; /// First vertex.
 	ushort stride; /// Vertex stride.
@@ -909,7 +912,7 @@ struct bgfx_transient_vertex_buffer_t
 /// Instance data buffer info.
 struct bgfx_instance_data_buffer_t
 {
-	byte* data; /// Pointer to data.
+	ubyte* data; /// Pointer to data.
 	uint size; /// Data size.
 	uint offset; /// Offset in vertex buffer.
 	uint num; /// Number of instances.
@@ -926,8 +929,8 @@ struct bgfx_texture_info_t
 	ushort height; /// Texture height.
 	ushort depth; /// Texture depth.
 	ushort numLayers; /// Number of layers in texture array.
-	byte numMips; /// Number of MIP maps.
-	byte bitsPerPixel; /// Format bits per pixel.
+	ubyte numMips; /// Number of MIP maps.
+	ubyte bitsPerPixel; /// Format bits per pixel.
 	bool cubeMap; /// Texture is cubemap.
 }
 
@@ -947,7 +950,7 @@ struct bgfx_attachment_t
 	ushort mip; /// Mip level.
 	ushort layer; /// Cubemap side or depth layer/slice to use.
 	ushort numLayers; /// Number of texture layer/slice(s) in array to use.
-	byte resolve; /// Resolve flags. See: `BGFX_RESOLVE_*`
+	ubyte resolve; /// Resolve flags. See: `BGFX_RESOLVE_*`
 }
 
 /// Transform data.
@@ -1019,7 +1022,7 @@ struct bgfx_stats_t
 	ushort textHeight; /// Debug text height in characters.
 	ushort numViews; /// Number of view stats.
 	bgfx_view_stats_t* viewStats; /// Array of View stats.
-	byte numEncoders; /// Number of encoders used during frame.
+	ubyte numEncoders; /// Number of encoders used during frame.
 	bgfx_encoder_stats_t* encoderStats; /// Array of encoder stats.
 }
 
